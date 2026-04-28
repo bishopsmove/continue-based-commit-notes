@@ -155,6 +155,7 @@ function parseYamlKeyValue(
     .trim()
     .replace(/^['"]|['"]$/g, ''); // strip optional quotes
   if (key && value) {
+    console.log(`Parsed key: ${key}, value: ${value}`);
     obj[key] = value;
   }
 }
