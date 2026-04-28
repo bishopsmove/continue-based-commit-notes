@@ -3,7 +3,7 @@
   "displayName": "Continue Commit Notes",
   "description": "Generate AI-powered git commit messages using your locally configured Continue.dev models",
   "version": "0.1.0",
-  "publisher": "your-publisher-id",
+  "publisher": "jim-ki-do",
   "license": "MIT",
   "engines": {
     "vscode": "^1.85.0"
