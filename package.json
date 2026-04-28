@@ -1,0 +1,154 @@
+{
+  "name": "continue-commit-notes",
+  "displayName": "Continue Commit Notes",
+  "description": "Generate AI-powered git commit messages using your locally configured Continue.dev models",
+  "version": "0.1.0",
+  "publisher": "your-publisher-id",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Machine Learning"
+  ],
+  "keywords": [
+    "git",
+    "commit",
+    "ai",
+    "continue",
+    "llm",
+    "local",
+    "conventional commits",
+    "ollama"
+  ],
+  "icon": "icons/marketplace-icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/continue-commit-notes"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/continue-commit-notes/issues"
+  },
+  "activationEvents": [
+    "onView:scm"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "continueCommit.generate",
+        "title": "Generate Commit Message",
+        "category": "Continue Commit",
+        "icon": {
+          "light": "icons/continue-commit-light.svg",
+          "dark": "icons/continue-commit-dark.svg"
+        }
+      },
+      {
+        "command": "continueCommit.generateWithModelPicker",
+        "title": "Generate Commit Message (Pick Model)",
+        "category": "Continue Commit",
+        "icon": {
+          "light": "icons/continue-commit-light.svg",
+          "dark": "icons/continue-commit-dark.svg"
+        }
+      }
+    ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "continueCommit.generate",
+          "group": "navigation",
+          "when": "scmProvider == git"
+        }
+      ],
+      "scm/resourceGroup/context": [
+        {
+          "command": "continueCommit.generate",
+          "group": "inline",
+          "when": "scmProvider == git && scmResourceGroup == workingTree"
+        },
+        {
+          "command": "continueCommit.generate",
+          "group": "inline",
+          "when": "scmProvider == git && scmResourceGroup == index"
+        },
+        {
+          "command": "continueCommit.generate",
+          "group": "1_continueCommit",
+          "when": "scmProvider == git"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Continue Commit Notes",
+      "properties": {
+        "continueCommit.showModelPicker": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Always show a model picker before generating. When `false`, uses `#continueCommit.preferredModel#` or the first model in your Continue config."
+        },
+        "continueCommit.preferredModel": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "The **title** of the preferred Continue model (must match a `title` field in `~/.continue/config.json`). Leave empty to auto-select the first available chat model."
+        },
+        "continueCommit.commitStyle": {
+          "type": "string",
+          "enum": [
+            "conventional",
+            "freeform"
+          ],
+          "enumDescriptions": [
+            "Conventional Commits — feat:, fix:, chore:, etc.",
+            "Plain one-liner summary with optional body"
+          ],
+          "default": "conventional",
+          "description": "Commit message format to request from the model."
+        },
+        "continueCommit.continuePort": {
+          "type": "number",
+          "default": 65432,
+          "description": "Port number for the Continue.dev local proxy server. Change only if you've configured a custom port."
+        },
+        "continueCommit.maxTokens": {
+          "type": "number",
+          "default": 256,
+          "minimum": 64,
+          "maximum": 2048,
+          "description": "Maximum tokens to generate for the commit message."
+        },
+        "continueCommit.useContinueProxy": {
+          "type": "boolean",
+          "default": true,
+          "description": "Try the Continue.dev local proxy first before falling back to the model provider's API directly."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "node esbuild.js --production",
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "pretest": "tsc -p tsconfig.json",
+    "test": "node ./out/test/runTests.js",
+    "lint": "eslint src --ext ts",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.5",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.3.8",
+    "@vscode/vsce": "^2.24.0",
+    "esbuild": "^0.25.0",
+    "mocha": "^10.2.0",
+    "typescript": "^5.3.3"
+  },
+
+  "overrides": {
+    "serialize-javascript": ">=7.0.5",
+    "uuid": ">=14.0.0"
+  }
+}

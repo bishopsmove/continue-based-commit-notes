@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none">
+  <!--
+    Stylized "C" for dark themes (light-colored icon).
+    Outer radius 6, inner radius 3.5, 300° arc opening to the right.
+    Outer arc endpoints (±30° from horizontal right):
+      top:    (8 + 6·cos30°,  8 − 6·sin30°) ≈ (13.196, 5)
+      bottom: (8 + 6·cos30°,  8 + 6·sin30°) ≈ (13.196, 11)
+    Inner arc endpoints (±30°):
+      top:    (8 + 3.5·cos30°, 8 − 3.5·sin30°) ≈ (11.031, 6.25)
+      bottom: (8 + 3.5·cos30°, 8 + 3.5·sin30°) ≈ (11.031, 9.75)
+  -->
+  <path
+    d="
+      M 13.196 5
+      A 6 6 0 1 0 13.196 11
+      L 11.031 9.75
+      A 3.5 3.5 0 1 1 11.031 6.25
+      Z
+    "
+    fill="#C8C8C8"
+  />
+</svg>
