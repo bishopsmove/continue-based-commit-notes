@@ -9,7 +9,7 @@
 **Continue Commit Notes** adds a single-click **C** button to the Source Control panel in VS Code. Click it and the extension:
 
 1. Reads your staged diff (or all working-tree changes if nothing is staged)
-2. Looks up which chat models you have configured in `~/.continue/config.json`
+2. Looks up which chat models you have configured in `~/.continue/config.json` (or `config.yaml`) and selects one based on your settings
 3. Sends the diff to that model with a structured prompt
 4. Writes the generated message directly into the SCM commit input box — ready to review, edit, and commit
 
@@ -64,7 +64,7 @@ Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run:
 
 By default the extension uses the **first model** listed in your Continue config. You can override this in three ways:
 
-1. **Pin a model** — set `continueCommit.preferredModel` to the model's `title` field
+1. **Pin a model** — set `continueCommit.preferredModel` to the model's `title` (or `name`) field
 2. **Always show a picker** — set `continueCommit.showModelPicker: true`
 3. **Per-generation picker** — run `Continue Commit: Generate Commit Message (Pick Model)` from the palette or right-click menu
 
@@ -119,6 +119,18 @@ The extension reads `~/.continue/config.json` (or `config.yaml` for newer Contin
       "provider": "openai",
       "model": "gpt-4o",
       "apiKey": "sk-..."
+    },
+    {
+      "name": "qwen2.5-coder-7b-instruct",
+      "provider": "llama.cpp",
+      "model": "qwen2.5-coder-7b-instruct-q4_k_m.gguf",
+      "apiBase": "http://localhost:8000",
+      "roles": [
+        "apply",
+        "chat",
+        "edit",
+        "autocomplete"
+      ]
     }
   ]
 }
