@@ -38,7 +38,7 @@
     "commands": [
       {
         "command": "continueCommit.generate",
-        "title": "Generate Commit Message",
+        "title": "Generate Commit Message (via Continue.dev config)",
         "category": "Continue Commit",
         "icon": {
           "light": "icons/continue-commit-light.svg",
@@ -47,7 +47,7 @@
       },
       {
         "command": "continueCommit.generateWithModelPicker",
-        "title": "Generate Commit Message (Pick Model)",
+        "title": "Generate Commit Message (via Continue.dev config) (Pick Model)",
         "category": "Continue Commit",
         "icon": {
           "light": "icons/continue-commit-light.svg",
