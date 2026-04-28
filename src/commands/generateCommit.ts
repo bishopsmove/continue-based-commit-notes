@@ -78,7 +78,7 @@ async function runGenerate(showModelPicker: boolean): Promise<void> {
   if (chatModels.length === 0) {
     vscode.window.showErrorMessage(
       'Continue Commit: No chat models are configured in your Continue config. ' +
-      'Add a model under the "models" key in ~/.continue/config.json.'
+      'Add a model under the "models" key in ~/.continue/config.json (or config.yaml).'
     );
     return;
   }
@@ -155,7 +155,7 @@ async function pickModel(
   models: ContinueModel[]
 ): Promise<ContinueModel | undefined> {
   const items = models.map(m => ({
-    label: m.title,
+    label: m.title || m.name || '(untitled model)',
     description: `${m.provider} / ${m.model}`,
     detail: m.apiBase ? `API base: ${m.apiBase}` : undefined,
     model: m,

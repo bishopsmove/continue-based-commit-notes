@@ -8,8 +8,9 @@ import * as path from 'path';
 
 export interface ContinueModel {
   title: string;
+  name?: string; // name is an optional alias for title, used in some YAML configs
   provider: string;
-  model: string;
+  model: string; // for Ollama models specified as "model: ollama/modelName"
   apiBase?: string;
   apiKey?: string;
 }
@@ -67,7 +68,7 @@ export function getChatModels(config: ContinueConfig): ContinueModel[] {
   if (!Array.isArray(config?.models)) {
     return [];
   }
-  return config.models.filter(m => Boolean(m.title) && Boolean(m.model));
+  return config.models.filter(m => (Boolean(m.title) || Boolean(m.name)) && Boolean(m.model));
 }
 
 /**
@@ -79,7 +80,7 @@ export function findModelByTitle(
   title: string
 ): ContinueModel | undefined {
   const lower = title.toLowerCase();
-  return models.find(m => m.title.toLowerCase() === lower);
+  return models.find(m => m.title.toLowerCase() === lower || m.name?.toLowerCase() === lower);
 }
 
 // ---------------------------------------------------------------------------
@@ -98,7 +99,7 @@ function parseMinimalYaml(yaml: string): ContinueConfig {
   const pushCurrent = () => {
     if (
       current &&
-      current.title &&
+      (current.title || current.name) &&
       current.model &&
       current.provider
     ) {
