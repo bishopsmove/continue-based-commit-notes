@@ -7,7 +7,7 @@ import * as path from 'path';
 // ---------------------------------------------------------------------------
 
 export interface ContinueModel {
-  title: string;
+  title?: string;
   name?: string; // name is an optional alias for title, used in some YAML configs
   provider: string;
   model: string; // for Ollama models specified as "model: ollama/modelName"
@@ -80,7 +80,7 @@ export function findModelByTitle(
   title: string
 ): ContinueModel | undefined {
   const lower = title.toLowerCase();
-  return models.find(m => m.title.toLowerCase() === lower || m.name?.toLowerCase() === lower);
+  return models.find(m => m.title?.toLowerCase() === lower || m.name?.toLowerCase() === lower);
 }
 
 // ---------------------------------------------------------------------------
