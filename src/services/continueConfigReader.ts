@@ -61,11 +61,11 @@ export function readContinueConfig(): ContinueConfig | null {
 
 /**
  * Returns all chat-capable models from a parsed config.
- * Filters out entries missing a `title` or `model` field, which are
+ * Filters out entries missing a `title`, 'name', or `model` field, which are
  * likely embedding / autocomplete-only entries.
  */
 export function getChatModels(config: ContinueConfig): ContinueModel[] {
-  if (!Array.isArray(config?.models)) {
+  if (config?.models === undefined || !Array.isArray(config?.models) || config.models.length === 0) {
     return [];
   }
   return config.models.filter(m => (Boolean(m.title) || Boolean(m.name)) && Boolean(m.model));

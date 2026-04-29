@@ -51,8 +51,8 @@ A **C** icon is always visible in the top-right of the Source Control panel titl
 
 **③ Command Palette**  
 Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run:
-- `Continue Commit: Generate Commit Message`
-- `Continue Commit: Generate Commit Message (Pick Model)`
+- `Continue Commit: Generate Commit Message (via Continue.dev config)`
+- `Continue Commit: Generate Commit Message (via Continue.dev config) (Pick Model)`
 
 ### What gets sent to the model
 
@@ -66,7 +66,7 @@ By default the extension uses the **first model** listed in your Continue config
 
 1. **Pin a model** — set `continueCommit.preferredModel` to the model's `title` (or `name`) field
 2. **Always show a picker** — set `continueCommit.showModelPicker: true`
-3. **Per-generation picker** — run `Continue Commit: Generate Commit Message (Pick Model)` from the palette or right-click menu
+3. **Per-generation picker** — run `Continue Commit: Generate Commit Message (via Continue.dev config) (Pick Model)` from the palette or right-click menu
 
 ---
 
@@ -77,7 +77,7 @@ All settings are under `continueCommit.*` in VS Code settings (`Ctrl+,`).
 | Setting | Type | Default | Description |
 |---|---|---|---|
 | `showModelPicker` | boolean | `false` | Always show a QuickPick model selector before generating |
-| `preferredModel` | string | `""` | Title of the preferred Continue model (must match a `title` in your config). Leave empty to auto-select the first model. |
+| `preferredModel` | string | `""` | Title of the preferred Continue model (must match a `title` or `name` in your config). Leave empty to auto-select the first model. |
 | `commitStyle` | enum | `"conventional"` | `"conventional"` — Conventional Commits format; `"freeform"` — plain summary |
 | `continuePort` | number | `65432` | Port of the Continue.dev local proxy server |
 | `maxTokens` | number | `256` | Maximum tokens to generate (64–2048) |
@@ -219,7 +219,7 @@ npm test
 ### Package for Marketplace
 
 ```bash
-npm run package          # produces continue-commit-notes-x.y.z.vsix
+vsce package          # produces continue-commit-notes-x.y.z.vsix
 ```
 
 Install the VSIX locally with `Extensions: Install from VSIX…` in VS Code, or publish with `vsce publish`.
