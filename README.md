@@ -121,7 +121,7 @@ The extension reads `~/.continue/config.json` (or `config.yaml` for newer Contin
       "apiKey": "sk-..."
     },
     {
-      "name": "qwen2.5-coder-7b-instruct",
+      "name": "qwen2.5-coder-7b-instruct-q4",
       "provider": "llama.cpp",
       "model": "qwen2.5-coder-7b-instruct-q4_k_m.gguf",
       "apiBase": "http://localhost:8000",
