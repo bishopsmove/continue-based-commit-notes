@@ -5,6 +5,40 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.2.7] — 2026-04-29
+
+### Added
+- `.vscode/launch.json` configuration for running and debugging extension tests
+- `extensionKind: ["ui"]` declaration to package.json
+- Expanded marketplace keywords (llama.cpp, LM Studio, gpt4all, gemini, mistral, and others)
+
+### Changed
+- Updated dev dependencies
+
+## [0.2.2] — 2026-04-29
+
+### Fixed
+- Model display now falls back to `name` when `title` is empty, preventing blank labels in the model picker and status messages
+- Config reader now tries `config.yaml` before `config.json` (aligns with Continue's default format)
+- Model filter correctly accepts models that have `name` but no `title`
+
+### Added
+- Logging for the resolved Continue config directory path and parsed model list
+
+## [0.2.1] — 2026-04-28
+
+### Added
+- Logging in the config reader to aid debugging
+
+## [0.2.0] — 2026-04-28
+
+### Added
+- MIT license
+
+### Changed
+- `ContinueModel.title` is now optional; `name` is accepted as an alias (supports configs that use `name:` instead of `title:`)
+- Menu command titles updated for clarity
+
 ## [0.1.0] — 2026-04-28
 
 ### Added
