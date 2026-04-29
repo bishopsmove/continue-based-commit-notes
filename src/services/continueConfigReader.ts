@@ -32,7 +32,7 @@ export function getContinueConfigDir(): string {
 
 /**
  * Reads and parses the Continue configuration file.
- * Tries `config.json` first (most common), then `config.yaml`.
+ * Tries `config.yaml` first (most common), then `config.json`.
  * Returns `null` when neither file exists or cannot be parsed.
  */
 export function readContinueConfig(): ContinueConfig | null {
@@ -165,7 +165,6 @@ function parseYamlKeyValue(
     .trim()
     .replace(/^['"]|['"]$/g, ''); // strip optional quotes
   if (key && value) {
-    console.log(`Parsed key: ${key}, value: ${value}`);
     obj[key] = value;
   }
 }

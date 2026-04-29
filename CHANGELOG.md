@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.2.8] — 2026-04-29
+
+### Changed
+- Cleaned up logging messages in the config reader and model filter for clarity
+- Updated commenting in the config reader to explain the logic more clearly
+
 ## [0.2.7] — 2026-04-29
 
 ### Added
