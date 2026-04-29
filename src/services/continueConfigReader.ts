@@ -25,7 +25,9 @@ export interface ContinueConfig {
 
 /** Absolute path to the Continue configuration directory. */
 export function getContinueConfigDir(): string {
-  return path.join(os.homedir(), '.continue');
+  const configDir = path.join(os.homedir(), '.continue');
+  console.log(`Looking for Continue config in: ${configDir}`);
+  return configDir;
 }
 
 /**
@@ -36,6 +38,16 @@ export function getContinueConfigDir(): string {
 export function readContinueConfig(): ContinueConfig | null {
   const dir = getContinueConfigDir();
 
+  const yamlPath = path.join(dir, 'config.yaml');
+  if (fs.existsSync(yamlPath)) {
+    try {
+      const raw = fs.readFileSync(yamlPath, 'utf-8');
+      return parseMinimalYaml(raw);
+    } catch {
+      return null;
+    }
+  }
+  
   const jsonPath = path.join(dir, 'config.json');
   if (fs.existsSync(jsonPath)) {
     try {
@@ -46,15 +58,7 @@ export function readContinueConfig(): ContinueConfig | null {
     }
   }
 
-  const yamlPath = path.join(dir, 'config.yaml');
-  if (fs.existsSync(yamlPath)) {
-    try {
-      const raw = fs.readFileSync(yamlPath, 'utf-8');
-      return parseMinimalYaml(raw);
-    } catch {
-      return null;
-    }
-  }
+  
 
   return null;
 }
@@ -111,6 +115,10 @@ function parseMinimalYaml(yaml: string): ContinueConfig {
   for (const line of lines) {
     const trimmed = line.trim();
 
+    if (!trimmed || trimmed.startsWith('#')) {
+      continue;
+    }
+
     if (trimmed === 'models:') {
       inModels = true;
       continue;
@@ -120,8 +128,9 @@ function parseMinimalYaml(yaml: string): ContinueConfig {
       continue;
     }
 
-    // A non-indented key that is not a list item ends the models block.
-    if (/^[a-zA-Z]/.test(trimmed) && !trimmed.startsWith('-')) {
+    // A line with no leading whitespace that isn't a list item ends the models block.
+    // Use the raw line (not trimmed) so indented model properties don't falsely match.
+    if (/^[a-zA-Z]/.test(line)) {
       pushCurrent();
       inModels = false;
       continue;
@@ -138,6 +147,7 @@ function parseMinimalYaml(yaml: string): ContinueConfig {
   }
 
   pushCurrent();
+  console.log(`Parsed ${models.length} models from YAML config. Models: ${models.map(m => m.title || m.name).join(', ')}`);
   return { models };
 }
 

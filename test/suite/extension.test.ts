@@ -1,6 +1,8 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 
+const providerId = 'jim-ki-do'
+const extensionId = `${providerId}.continue-commit-notes`;
 /**
  * Integration tests that run inside a real VS Code extension host.
  * These verify that the extension activates correctly and its commands
@@ -9,16 +11,14 @@ import * as vscode from 'vscode';
 suite('Extension — activation & registration', () => {
   // Give the extension host time to load all extensions
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('your-publisher-id.continue-commit-notes');
+    const ext = vscode.extensions.getExtension(extensionId);
     if (ext && !ext.isActive) {
       await ext.activate();
     }
   });
 
   test('Extension is present in the registry', () => {
-    const ext = vscode.extensions.getExtension(
-      'your-publisher-id.continue-commit-notes'
-    );
+    const ext = vscode.extensions.getExtension(extensionId);
     assert.ok(ext, 'Extension should be registered');
   });
 

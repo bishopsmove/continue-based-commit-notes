@@ -18,16 +18,18 @@ suite('continueConfigReader — getChatModels', () => {
     assert.deepStrictEqual(getChatModels(cfg), []);
   });
 
-  test('filters out entries with no title', () => {
+  test('filters out entries with no title or name', () => {
     const cfg: ContinueConfig = {
       models: [
-        { title: '', provider: 'openai', model: 'gpt-4' },
+        { title: '', name: '', provider: 'llama.cpp', model: 'qwen2.5-coder-7b-instruct-q4' },
+        { title: '', name: 'AlsoValid', provider: 'openai', model: 'gpt-4' },
         { title: 'Valid', provider: 'ollama', model: 'llama3' },
       ],
     };
     const result = getChatModels(cfg);
-    assert.strictEqual(result.length, 1);
-    assert.strictEqual(result[0].title, 'Valid');
+    assert.strictEqual(result.length, 2);
+    assert.strictEqual(result[0].name, 'AlsoValid');
+    assert.strictEqual(result[1].title, 'Valid');
   });
 
   test('filters out entries with no model name', () => {
@@ -42,7 +44,7 @@ suite('continueConfigReader — getChatModels', () => {
 
   test('returns all valid models unmodified', () => {
     const models: ContinueModel[] = [
-      { title: 'GPT-4', provider: 'openai', model: 'gpt-4', apiKey: 'sk-test' },
+      { name: 'GPT-4', provider: 'openai', model: 'gpt-4', apiKey: 'sk-test' },
       { title: 'Llama 3', provider: 'ollama', model: 'llama3' },
       { title: 'LM Studio', provider: 'lmstudio', model: 'local-model' },
     ];
@@ -68,14 +70,20 @@ suite('continueConfigReader — getChatModels', () => {
   });
 });
 
-suite('continueConfigReader — findModelByTitle', () => {
+suite('continueConfigReader — findModelByTitleOrName', () => {
   const models: ContinueModel[] = [
-    { title: 'GPT-4', provider: 'openai', model: 'gpt-4' },
+    { name: 'GPT-4', provider: 'openai', model: 'gpt-4' },
     { title: 'Ollama Llama 3', provider: 'ollama', model: 'llama3' },
     { title: 'LM Studio', provider: 'lmstudio', model: 'local' },
   ];
 
   test('finds model by exact title', () => {
+    const found = findModelByTitle(models, 'Ollama Llama 3');
+    assert.ok(found, 'Should find Ollama Llama 3');
+    assert.strictEqual(found!.provider, 'ollama');
+  });
+
+  test('finds model by exact name', () => {
     const found = findModelByTitle(models, 'GPT-4');
     assert.ok(found, 'Should find GPT-4');
     assert.strictEqual(found!.provider, 'openai');
@@ -87,7 +95,7 @@ suite('continueConfigReader — findModelByTitle', () => {
     assert.ok(findModelByTitle(models, 'Gpt-4'), 'mixed case should match');
   });
 
-  test('finds model with spaces in title', () => {
+  test('finds model with spaces in title or name', () => {
     const found = findModelByTitle(models, 'ollama llama 3');
     assert.ok(found);
     assert.strictEqual(found!.model, 'llama3');

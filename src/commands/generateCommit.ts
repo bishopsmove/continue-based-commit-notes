@@ -102,7 +102,7 @@ async function runGenerate(showModelPicker: boolean): Promise<void> {
 
   selectedModel ??= chatModels[0];
   Logger.log(
-    `Selected model: "${selectedModel.title}" (${selectedModel.provider} / ${selectedModel.model})`
+    `Selected model: "${selectedModel.title ?? selectedModel.name}" (${selectedModel.provider} / ${selectedModel.model})`
   );
 
   // ── 4. Generate ───────────────────────────────────────────────────────────
@@ -136,7 +136,7 @@ async function runGenerate(showModelPicker: boolean): Promise<void> {
         Logger.log(`Commit message generated (${generated.length} chars).`);
 
         vscode.window.showInformationMessage(
-          `Continue Commit: Message generated using "${selectedModel!.title}" ✓`
+          `Continue Commit: Message generated using "${selectedModel!.title ?? selectedModel!.name}" ✓`
         );
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
