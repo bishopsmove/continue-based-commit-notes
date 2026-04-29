@@ -2,7 +2,7 @@
   "name": "continue-commit-notes",
   "displayName": "Continue Commit Notes",
   "description": "Generate AI-powered git commit messages using your locally configured Continue.dev models",
-  "version": "0.2.2",
+  "version": "0.2.7",
   "publisher": "jim-ki-do",
   "license": "MIT",
   "engines": {
@@ -20,7 +20,19 @@
     "llm",
     "local",
     "conventional commits",
-    "ollama"
+    "ollama",
+    "llama.cpp",
+    "lmstudio",
+    "gpt4all",
+    "gemini",
+    "mistral",
+    "a3",
+    "vicuna",
+    "falcon",
+    "custom models"
+  ],
+  "extensionKind": [
+    "ui"
   ],
   "icon": "extension/icons/marketplace-icon.png",
   "repository": {
