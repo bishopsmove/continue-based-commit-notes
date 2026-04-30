@@ -7,6 +7,24 @@ import type { ChatMessage } from '../utils/promptBuilder';
 import { Logger } from '../utils/logger';
 
 // ---------------------------------------------------------------------------
+// Error types
+// ---------------------------------------------------------------------------
+
+export class ProviderUnavailableError extends Error {
+  constructor(public readonly provider: string, public readonly apiBase: string) {
+    super(`Provider "${provider}" is not available at ${apiBase} (connection refused)`);
+    this.name = 'ProviderUnavailableError';
+  }
+}
+
+export class ModelNotFoundError extends Error {
+  constructor(public readonly modelName: string, public readonly provider: string) {
+    super(`Model "${modelName}" was not found on provider "${provider}" (HTTP 404)`);
+    this.name = 'ModelNotFoundError';
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 

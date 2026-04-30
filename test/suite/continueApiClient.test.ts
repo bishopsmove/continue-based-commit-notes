@@ -57,3 +57,36 @@ suite('continueApiClient — module shape', () => {
     assert.ok(rejected, 'Should reject when the server is unreachable');
   });
 });
+
+suite('continueApiClient — error classes', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mod = require('../../src/services/continueApiClient') as typeof import('../../src/services/continueApiClient');
+
+  test('ProviderUnavailableError is exported', () => {
+    assert.strictEqual(typeof mod.ProviderUnavailableError, 'function');
+  });
+
+  test('ModelNotFoundError is exported', () => {
+    assert.strictEqual(typeof mod.ModelNotFoundError, 'function');
+  });
+
+  test('ProviderUnavailableError sets name, message, provider, apiBase', () => {
+    const err = new mod.ProviderUnavailableError('ollama', 'http://localhost:11434');
+    assert.strictEqual(err.name, 'ProviderUnavailableError');
+    assert.ok(err.message.includes('ollama'));
+    assert.ok(err.message.includes('http://localhost:11434'));
+    assert.strictEqual(err.provider, 'ollama');
+    assert.strictEqual(err.apiBase, 'http://localhost:11434');
+    assert.ok(err instanceof Error);
+  });
+
+  test('ModelNotFoundError sets name, message, modelName, provider', () => {
+    const err = new mod.ModelNotFoundError('llama3', 'ollama');
+    assert.strictEqual(err.name, 'ModelNotFoundError');
+    assert.ok(err.message.includes('llama3'));
+    assert.ok(err.message.includes('ollama'));
+    assert.strictEqual(err.modelName, 'llama3');
+    assert.strictEqual(err.provider, 'ollama');
+    assert.ok(err instanceof Error);
+  });
+});
