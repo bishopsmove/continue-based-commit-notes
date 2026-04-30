@@ -91,4 +91,10 @@ suite('continueApiClient — error classes', () => {
     assert.strictEqual(err.provider, 'ollama');
     assert.ok(err instanceof Error);
   });
+
+  test('ModelNotFoundError is instanceof Error', () => {
+    const err = new mod.ModelNotFoundError('mistral', 'openai');
+    assert.ok(err instanceof Error);
+    assert.strictEqual(err.name, 'ModelNotFoundError');
+  });
 });

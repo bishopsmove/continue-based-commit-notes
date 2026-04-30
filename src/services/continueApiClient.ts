@@ -268,6 +268,8 @@ function httpPost(
           const status = res.statusCode ?? 0;
           if (status >= 200 && status < 300) {
             resolve(data);
+          } else if (status === 404) {
+            reject(new ModelNotFoundError(opts.path, opts.provider));
           } else {
             reject(new Error(`HTTP ${status}: ${data.slice(0, 200)}`));
           }
