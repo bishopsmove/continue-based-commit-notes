@@ -88,7 +88,7 @@ async function tryContinueProxy(
   });
 
   const raw = await httpPost(
-    { hostname: 'localhost', port, path: '/chat/completions' },
+    { hostname: 'localhost', port, path: '/chat/completions', provider: 'continue-proxy', apiBase: `http://localhost:${port}` },
     body,
     {},
     false
@@ -139,7 +139,7 @@ async function callOllama(options: CompletionOptions): Promise<string> {
     options: { num_predict: options.maxTokens ?? 256 },
   });
 
-  const raw = await httpPost(urlToOpts(url), body, {}, url.protocol === 'https:');
+  const raw = await httpPost(urlToOpts(url, model.provider, base), body, {}, url.protocol === 'https:');
   const json = JSON.parse(raw) as { message?: { content?: string } };
   const content = json?.message?.content;
   if (!content) {
@@ -171,7 +171,7 @@ async function callOpenAICompatible(options: CompletionOptions): Promise<string>
   }
 
   const raw = await httpPost(
-    urlToOpts(url),
+    urlToOpts(url, model.provider, base),
     body,
     extraHeaders,
     url.protocol === 'https:'
@@ -215,7 +215,7 @@ async function callAnthropic(options: CompletionOptions): Promise<string> {
     extraHeaders['x-api-key'] = model.apiKey;
   }
 
-  const raw = await httpPost(urlToOpts(url), body, extraHeaders, true);
+  const raw = await httpPost(urlToOpts(url, model.provider, base), body, extraHeaders, true);
   const json = JSON.parse(raw) as {
     content?: Array<{ text?: string }>;
   };
@@ -234,6 +234,8 @@ interface PostOpts {
   hostname: string;
   port: number;
   path: string;
+  provider: string;
+  apiBase: string;
 }
 
 function httpPost(
@@ -273,7 +275,14 @@ function httpPost(
       }
     );
 
-    req.on('error', reject);
+    req.on('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'ECONNREFUSED') {
+        reject(new ProviderUnavailableError(opts.provider, opts.apiBase));
+      } else {
+        reject(err);
+      }
+    });
+
     req.setTimeout(30_000, () => {
       req.destroy(new Error('Request timed out after 30 s'));
     });
@@ -289,12 +298,14 @@ function safeUrl(pathSuffix: string, base: string): URL {
   return new URL(pathSuffix, normalised);
 }
 
-function urlToOpts(url: URL): PostOpts {
+function urlToOpts(url: URL, provider: string, apiBase: string): PostOpts {
   const defaultPort = url.protocol === 'https:' ? 443 : 80;
   return {
     hostname: url.hostname,
     port: url.port ? parseInt(url.port, 10) : defaultPort,
     path: url.pathname + url.search,
+    provider,
+    apiBase,
   };
 }
 

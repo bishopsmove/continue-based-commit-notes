@@ -38,8 +38,8 @@ suite('continueApiClient — module shape', () => {
     result.catch(() => { /* expected */ });
   });
 
-  test('getChatCompletion rejects (not throws) on network failure', async () => {
-    let rejected = false;
+  test('getChatCompletion rejects with ProviderUnavailableError on ECONNREFUSED', async () => {
+    let caughtError: unknown;
     try {
       await mod.getChatCompletion({
         model: {
@@ -51,10 +51,12 @@ suite('continueApiClient — module shape', () => {
         messages: [{ role: 'user', content: 'hello' }],
         maxTokens: 10,
       });
-    } catch {
-      rejected = true;
+    } catch (err) {
+      caughtError = err;
     }
-    assert.ok(rejected, 'Should reject when the server is unreachable');
+    assert.ok(caughtError instanceof mod.ProviderUnavailableError, 'Should be ProviderUnavailableError');
+    assert.strictEqual((caughtError as InstanceType<typeof mod.ProviderUnavailableError>).provider, 'ollama');
+    assert.ok((caughtError as InstanceType<typeof mod.ProviderUnavailableError>).apiBase.includes('localhost:1'));
   });
 });
 
