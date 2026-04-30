@@ -2,7 +2,7 @@
   "name": "continue-commit-notes",
   "displayName": "Continue Commit Notes",
   "description": "Generate AI-powered git commit messages using your locally configured Continue.dev models",
-  "version": "0.2.8",
+  "version": "0.3.0",
   "publisher": "jim-ki-do",
   "license": "MIT",
   "engines": {

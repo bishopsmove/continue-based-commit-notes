@@ -6,7 +6,11 @@ import {
   findModelByTitle,
   type ContinueModel,
 } from '../services/continueConfigReader';
-import { getChatCompletion } from '../services/continueApiClient';
+import {
+  getChatCompletion,
+  ProviderUnavailableError,
+  ModelNotFoundError,
+} from '../services/continueApiClient';
 import {
   getGitRepository,
   getStagedDiff,
@@ -16,6 +20,122 @@ import {
 } from '../services/gitService';
 import { buildPrompt, type CommitStyle } from '../utils/promptBuilder';
 import { Logger } from '../utils/logger';
+
+// ---------------------------------------------------------------------------
+// Fallback types (exported for testing)
+// ---------------------------------------------------------------------------
+
+export type FallbackMode =
+  | { kind: 'picker' }
+  | { kind: 'preferred'; preferredModel: ContinueModel }
+  | { kind: 'default'; initialModel: ContinueModel };
+
+export interface FallbackDeps {
+  generate: (model: ContinueModel) => Promise<string>;
+  pick: (models: ContinueModel[]) => Promise<ContinueModel | undefined>;
+  warn: (msg: string) => void;
+  error: (msg: string) => void;
+}
+
+export interface GenerateResult {
+  content: string;
+  model: ContinueModel;
+}
+
+// ---------------------------------------------------------------------------
+// generateWithFallback
+// ---------------------------------------------------------------------------
+
+export async function generateWithFallback(
+  chatModels: ContinueModel[],
+  mode: FallbackMode,
+  deps: FallbackDeps
+): Promise<GenerateResult | undefined> {
+
+  if (mode.kind === 'picker') {
+    while (true) {
+      const model = await deps.pick(chatModels);
+      if (!model) return undefined;
+
+      try {
+        const content = await deps.generate(model);
+        return { content, model };
+      } catch (err) {
+        if (err instanceof ProviderUnavailableError) {
+          deps.warn(
+            `Provider "${err.provider}" is not available at ${err.apiBase}. Pick a different model.`
+          );
+        } else if (err instanceof ModelNotFoundError) {
+          deps.warn(
+            `Model "${model.title ?? model.model}" was not found on provider "${model.provider}". Pick a different model.`
+          );
+        } else {
+          throw err;
+        }
+      }
+    }
+  }
+
+  // ── Preferred and default paths: linear fallback walk ─────────────────────
+  const unavailableProviders = new Set<string>();
+  const providerKey = (m: ContinueModel): string => `${m.provider}|${m.apiBase ?? ''}`;
+
+  const initialModel =
+    mode.kind === 'preferred' ? mode.preferredModel : mode.initialModel;
+  const isPreferred = mode.kind === 'preferred';
+  const modelDisplayName = (m: ContinueModel): string =>
+    m.title ?? m.name ?? '(untitled)';
+  const initialLabel = isPreferred
+    ? `Preferred model "${modelDisplayName(initialModel)}" — provider`
+    : 'Provider';
+
+  // Attempt the initial model
+  try {
+    const content = await deps.generate(initialModel);
+    return { content, model: initialModel };
+  } catch (err) {
+    if (err instanceof ProviderUnavailableError) {
+      deps.warn(
+        `${initialLabel} "${err.provider}" is not available at ${err.apiBase}. Trying next available model…`
+      );
+      unavailableProviders.add(providerKey(initialModel));
+    } else if (err instanceof ModelNotFoundError) {
+      const modelLabel = isPreferred
+        ? `Preferred model "${modelDisplayName(initialModel)}"`
+        : `Model "${modelDisplayName(initialModel)}"`;
+      deps.warn(
+        `${modelLabel} was not found on provider "${err.provider}". Trying next available model…`
+      );
+    } else {
+      throw err;
+    }
+  }
+
+  // Walk remaining models
+  for (const candidate of chatModels) {
+    if (candidate === initialModel) continue;
+    if (unavailableProviders.has(providerKey(candidate))) continue;
+
+    try {
+      const content = await deps.generate(candidate);
+      return { content, model: candidate };
+    } catch (err) {
+      if (err instanceof ProviderUnavailableError) {
+        unavailableProviders.add(providerKey(candidate));
+      } else if (err instanceof ModelNotFoundError) {
+        // continue to next candidate
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  // All models exhausted
+  deps.error(
+    'Continue Commit: No configured models are responding. Check that your providers are running.'
+  );
+  return undefined;
+}
 
 // ---------------------------------------------------------------------------
 // Command handlers (registered in extension.ts)
@@ -68,7 +188,7 @@ async function runGenerate(showModelPicker: boolean): Promise<void> {
   const continueConfig = readContinueConfig();
   if (!continueConfig) {
     vscode.window.showErrorMessage(
-      'Continue Commit: Could not read ~/.continue/config.json (or config.yaml). ' +
+      'Continue Commit: Could not read ~/.continue/config.yaml (or config.json). ' +
       'Make sure Continue.dev is installed and has been configured at least once.'
     );
     return;
@@ -78,32 +198,29 @@ async function runGenerate(showModelPicker: boolean): Promise<void> {
   if (chatModels.length === 0) {
     vscode.window.showErrorMessage(
       'Continue Commit: No chat models are configured in your Continue config. ' +
-      'Add a model under the "models" key in ~/.continue/config.json (or config.yaml).'
+      'Add a model under the "models" key in ~/.continue/config.yaml (or config.json).'
     );
     return;
   }
 
-  // ── 3. Model selection ────────────────────────────────────────────────────
-  let selectedModel: ContinueModel | undefined;
+  // ── 3. Determine mode ─────────────────────────────────────────────────────
+  let mode: FallbackMode;
 
   if (showModelPicker) {
-    selectedModel = await pickModel(chatModels);
-    if (!selectedModel) {
-      return; // user cancelled the QuickPick
-    }
+    mode = { kind: 'picker' };
   } else if (preferredModel) {
-    selectedModel = findModelByTitle(chatModels, preferredModel);
-    if (!selectedModel) {
+    const found = findModelByTitle(chatModels, preferredModel);
+    if (!found) {
       Logger.log(
         `Preferred model "${preferredModel}" not found in config — using first available.`
       );
     }
+    mode = found
+      ? { kind: 'preferred', preferredModel: found }
+      : { kind: 'default', initialModel: chatModels[0] };
+  } else {
+    mode = { kind: 'default', initialModel: chatModels[0] };
   }
-
-  selectedModel ??= chatModels[0];
-  Logger.log(
-    `Selected model: "${selectedModel.title ?? selectedModel.name}" (${selectedModel.provider} / ${selectedModel.model})`
-  );
 
   // ── 4. Generate ───────────────────────────────────────────────────────────
   await vscode.window.withProgress(
@@ -126,18 +243,21 @@ async function runGenerate(showModelPicker: boolean): Promise<void> {
         const branch = getCurrentBranch(repo);
         const messages = buildPrompt({ diff, style: commitStyle, branch });
 
-        const generated = await getChatCompletion({
-          model: selectedModel!,
-          messages,
-          maxTokens,
+        const result = await generateWithFallback(chatModels, mode, {
+          generate: (model) => getChatCompletion({ model, messages, maxTokens }),
+          pick: pickModel,
+          warn: (msg) => { void vscode.window.showWarningMessage(msg); },
+          error: (msg) => { void vscode.window.showErrorMessage(msg); },
         });
 
-        setCommitMessage(repo, generated);
-        Logger.log(`Commit message generated (${generated.length} chars).`);
-
-        vscode.window.showInformationMessage(
-          `Continue Commit: Message generated using "${selectedModel!.title ?? selectedModel!.name}" ✓`
-        );
+        if (result) {
+          const name = result.model.title ?? result.model.name ?? '(untitled)';
+          setCommitMessage(repo, result.content);
+          Logger.log(`Commit message generated using "${name}" (${result.content.length} chars).`);
+          vscode.window.showInformationMessage(
+            `Continue Commit: Message generated using "${name}" ✓`
+          );
+        }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         Logger.error('Generation failed', err);
