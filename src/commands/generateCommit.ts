@@ -67,7 +67,7 @@ export async function generateWithFallback(
           );
         } else if (err instanceof ModelNotFoundError) {
           deps.warn(
-            `Model "${err.modelName}" was not found on provider "${err.provider}". Pick a different model.`
+            `Model "${model.title ?? model.model}" was not found on provider "${model.provider}". Pick a different model.`
           );
         } else {
           throw err;

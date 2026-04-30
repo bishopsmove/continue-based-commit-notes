@@ -63,6 +63,11 @@ export async function getChatCompletion(
       Logger.log('Continue proxy succeeded.');
       return result;
     } catch (err) {
+      // Typed provider errors must propagate so the caller can apply fallback logic.
+      // Only absorb generic errors that indicate the proxy itself is not running.
+      if (err instanceof ProviderUnavailableError || err instanceof ModelNotFoundError) {
+        throw err;
+      }
       Logger.log(
         `Continue proxy unavailable (${errorMessage(err)}). Falling back to direct provider API.`
       );

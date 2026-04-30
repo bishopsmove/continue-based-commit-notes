@@ -34,12 +34,11 @@ suite('generateCommit — generateWithFallback', () => {
       const models = [makeModel('ollama', 'llama3', 'http://localhost:11434'), makeModel('openai', 'gpt-4')];
       const warns: string[] = [];
       let pickCount = 0;
-      let generateCount = 0;
+      let firstCall = true;
 
       const result = await mod.generateWithFallback(models, { kind: 'picker' }, {
-        generate: async (m) => {
-          generateCount++;
-          if (generateCount === 1) throw new ProviderUnavailableError('ollama', 'http://localhost:11434');
+        generate: async () => {
+          if (firstCall) { firstCall = false; throw new ProviderUnavailableError('ollama', 'http://localhost:11434'); }
           return 'fix: something';
         },
         pick: async (ms) => { pickCount++; return ms[pickCount - 1]; },
@@ -58,13 +57,12 @@ suite('generateCommit — generateWithFallback', () => {
     test('re-shows picker and warns on ModelNotFoundError', async () => {
       const models = [makeModel('ollama', 'llama3', 'http://localhost:11434'), makeModel('openai', 'gpt-4')];
       const warns: string[] = [];
-      let generateCount = 0;
+      let firstCall = true;
       let pickCount = 0;
 
       const result = await mod.generateWithFallback(models, { kind: 'picker' }, {
-        generate: async (m) => {
-          generateCount++;
-          if (generateCount === 1) throw new ModelNotFoundError('llama3', 'ollama');
+        generate: async () => {
+          if (firstCall) { firstCall = false; throw new ModelNotFoundError('llama3', 'ollama'); }
           return 'chore: update';
         },
         pick: async (ms) => { pickCount++; return ms[pickCount - 1]; },
