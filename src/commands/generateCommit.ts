@@ -6,7 +6,11 @@ import {
   findModelByTitle,
   type ContinueModel,
 } from '../services/continueConfigReader';
-import { getChatCompletion } from '../services/continueApiClient';
+import {
+  getChatCompletion,
+  ProviderUnavailableError,
+  ModelNotFoundError,
+} from '../services/continueApiClient';
 import {
   getGitRepository,
   getStagedDiff,
@@ -16,6 +20,65 @@ import {
 } from '../services/gitService';
 import { buildPrompt, type CommitStyle } from '../utils/promptBuilder';
 import { Logger } from '../utils/logger';
+
+// ---------------------------------------------------------------------------
+// Fallback types (exported for testing)
+// ---------------------------------------------------------------------------
+
+export type FallbackMode =
+  | { kind: 'picker' }
+  | { kind: 'preferred'; preferredModel: ContinueModel }
+  | { kind: 'default'; initialModel: ContinueModel };
+
+export interface FallbackDeps {
+  generate: (model: ContinueModel) => Promise<string>;
+  pick: (models: ContinueModel[]) => Promise<ContinueModel | undefined>;
+  warn: (msg: string) => void;
+  error: (msg: string) => void;
+}
+
+export interface GenerateResult {
+  content: string;
+  model: ContinueModel;
+}
+
+// ---------------------------------------------------------------------------
+// generateWithFallback
+// ---------------------------------------------------------------------------
+
+export async function generateWithFallback(
+  chatModels: ContinueModel[],
+  mode: FallbackMode,
+  deps: FallbackDeps
+): Promise<GenerateResult | undefined> {
+
+  if (mode.kind === 'picker') {
+    while (true) {
+      const model = await deps.pick(chatModels);
+      if (!model) return undefined;
+
+      try {
+        const content = await deps.generate(model);
+        return { content, model };
+      } catch (err) {
+        if (err instanceof ProviderUnavailableError) {
+          deps.warn(
+            `Provider "${err.provider}" is not available at ${err.apiBase}. Pick a different model.`
+          );
+        } else if (err instanceof ModelNotFoundError) {
+          deps.warn(
+            `Model "${err.modelName}" was not found on provider "${err.provider}". Pick a different model.`
+          );
+        } else {
+          throw err;
+        }
+      }
+    }
+  }
+
+  // Stub for preferred/default — implemented in Task 5
+  return undefined;
+}
 
 // ---------------------------------------------------------------------------
 // Command handlers (registered in extension.ts)
@@ -68,7 +131,7 @@ async function runGenerate(showModelPicker: boolean): Promise<void> {
   const continueConfig = readContinueConfig();
   if (!continueConfig) {
     vscode.window.showErrorMessage(
-      'Continue Commit: Could not read ~/.continue/config.json (or config.yaml). ' +
+      'Continue Commit: Could not read ~/.continue/config.yaml (or config.json). ' +
       'Make sure Continue.dev is installed and has been configured at least once.'
     );
     return;
@@ -78,7 +141,7 @@ async function runGenerate(showModelPicker: boolean): Promise<void> {
   if (chatModels.length === 0) {
     vscode.window.showErrorMessage(
       'Continue Commit: No chat models are configured in your Continue config. ' +
-      'Add a model under the "models" key in ~/.continue/config.json (or config.yaml).'
+      'Add a model under the "models" key in ~/.continue/config.yaml (or config.json).'
     );
     return;
   }
