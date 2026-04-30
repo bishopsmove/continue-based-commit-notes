@@ -83,8 +83,10 @@ export async function generateWithFallback(
   const initialModel =
     mode.kind === 'preferred' ? mode.preferredModel : mode.initialModel;
   const isPreferred = mode.kind === 'preferred';
+  const modelDisplayName = (m: ContinueModel): string =>
+    m.title ?? m.name ?? '(untitled)';
   const initialLabel = isPreferred
-    ? `Preferred model "${initialModel.title ?? initialModel.name}" — provider`
+    ? `Preferred model "${modelDisplayName(initialModel)}" — provider`
     : 'Provider';
 
   // Attempt the initial model
@@ -99,8 +101,8 @@ export async function generateWithFallback(
       unavailableProviders.add(providerKey(initialModel));
     } else if (err instanceof ModelNotFoundError) {
       const modelLabel = isPreferred
-        ? `Preferred model "${initialModel.title ?? initialModel.name}"`
-        : `Model "${initialModel.title ?? initialModel.name}"`;
+        ? `Preferred model "${modelDisplayName(initialModel)}"`
+        : `Model "${modelDisplayName(initialModel)}"`;
       deps.warn(
         `${modelLabel} was not found on provider "${err.provider}". Trying next available model…`
       );
@@ -249,10 +251,11 @@ async function runGenerate(showModelPicker: boolean): Promise<void> {
         });
 
         if (result) {
+          const name = result.model.title ?? result.model.name ?? '(untitled)';
           setCommitMessage(repo, result.content);
-          Logger.log(`Commit message generated (${result.content.length} chars).`);
+          Logger.log(`Commit message generated using "${name}" (${result.content.length} chars).`);
           vscode.window.showInformationMessage(
-            `Continue Commit: Message generated using "${result.model.title ?? result.model.name}" ✓`
+            `Continue Commit: Message generated using "${name}" ✓`
           );
         }
       } catch (err) {
