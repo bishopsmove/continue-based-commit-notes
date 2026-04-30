@@ -201,27 +201,24 @@ async function runGenerate(showModelPicker: boolean): Promise<void> {
     return;
   }
 
-  // ── 3. Model selection ────────────────────────────────────────────────────
-  let selectedModel: ContinueModel | undefined;
+  // ── 3. Determine mode ─────────────────────────────────────────────────────
+  let mode: FallbackMode;
 
   if (showModelPicker) {
-    selectedModel = await pickModel(chatModels);
-    if (!selectedModel) {
-      return; // user cancelled the QuickPick
-    }
+    mode = { kind: 'picker' };
   } else if (preferredModel) {
-    selectedModel = findModelByTitle(chatModels, preferredModel);
-    if (!selectedModel) {
+    const found = findModelByTitle(chatModels, preferredModel);
+    if (!found) {
       Logger.log(
         `Preferred model "${preferredModel}" not found in config — using first available.`
       );
     }
+    mode = found
+      ? { kind: 'preferred', preferredModel: found }
+      : { kind: 'default', initialModel: chatModels[0] };
+  } else {
+    mode = { kind: 'default', initialModel: chatModels[0] };
   }
-
-  selectedModel ??= chatModels[0];
-  Logger.log(
-    `Selected model: "${selectedModel.title ?? selectedModel.name}" (${selectedModel.provider} / ${selectedModel.model})`
-  );
 
   // ── 4. Generate ───────────────────────────────────────────────────────────
   await vscode.window.withProgress(
@@ -244,18 +241,20 @@ async function runGenerate(showModelPicker: boolean): Promise<void> {
         const branch = getCurrentBranch(repo);
         const messages = buildPrompt({ diff, style: commitStyle, branch });
 
-        const generated = await getChatCompletion({
-          model: selectedModel!,
-          messages,
-          maxTokens,
+        const result = await generateWithFallback(chatModels, mode, {
+          generate: (model) => getChatCompletion({ model, messages, maxTokens }),
+          pick: pickModel,
+          warn: (msg) => { void vscode.window.showWarningMessage(msg); },
+          error: (msg) => { void vscode.window.showErrorMessage(msg); },
         });
 
-        setCommitMessage(repo, generated);
-        Logger.log(`Commit message generated (${generated.length} chars).`);
-
-        vscode.window.showInformationMessage(
-          `Continue Commit: Message generated using "${selectedModel!.title ?? selectedModel!.name}" ✓`
-        );
+        if (result) {
+          setCommitMessage(repo, result.content);
+          Logger.log(`Commit message generated (${result.content.length} chars).`);
+          vscode.window.showInformationMessage(
+            `Continue Commit: Message generated using "${result.model.title ?? result.model.name}" ✓`
+          );
+        }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         Logger.error('Generation failed', err);
