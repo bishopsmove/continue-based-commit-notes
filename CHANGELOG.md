@@ -5,6 +5,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-04-30
+
+### Added
+- **Model availability fallback**: when a provider is unreachable or a model is not loaded, the extension now warns the user and automatically tries the next configured model rather than failing immediately
+  - `ECONNREFUSED` (provider not running) surfaces as a specific warning and skips all other models on the same provider+address
+  - HTTP 404 (model not found on provider) surfaces as a specific warning and tries the next model; other models on the same provider are still attempted
+  - **Picker mode** (`showModelPicker`): re-shows the model picker after a failure so the user can choose a different model
+  - **Preferred model mode**: warns with "Preferred model…" prefix, then walks remaining configured models
+  - **Default mode**: warns and walks `chatModels` in order until one succeeds
+  - If all configured models fail, shows an error: "No configured models are responding. Check that your providers are running."
+- `ProviderUnavailableError` and `ModelNotFoundError` exported error classes in `continueApiClient.ts` for typed error handling
+
+### Fixed
+- Model display name now falls back to `'(untitled)'` instead of the string `"undefined"` when a model has neither `title` nor `name`
+- Typed provider errors (`ProviderUnavailableError`, `ModelNotFoundError`) now propagate correctly when the Continue proxy is enabled, so fallback logic fires regardless of the `useContinueProxy` setting
+- Config reader logging now uses the `Logger` class consistently
+
 ## [0.2.8] — 2026-04-29
 
 ### Changed
