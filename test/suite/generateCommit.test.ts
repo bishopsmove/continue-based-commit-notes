@@ -132,11 +132,9 @@ suite('generateCommit — generateWithFallback', () => {
       const fallback = makeModel('openai', 'gpt-4');
       const models = [preferred, fallback];
       const warns: string[] = [];
-      let callCount = 0;
 
       const result = await mod.generateWithFallback(models, { kind: 'preferred', preferredModel: preferred }, {
         generate: async (m) => {
-          callCount++;
           if (m === preferred) throw new ProviderUnavailableError('ollama', 'http://localhost:11434');
           return 'fix: fallback';
         },
@@ -231,6 +229,7 @@ suite('generateCommit — generateWithFallback', () => {
 
       assert.ok(result !== undefined);
       assert.strictEqual(result!.content, 'feat: init');
+      assert.strictEqual(result!.model, initial);
     });
 
     test('warns and falls back on ProviderUnavailableError', async () => {
