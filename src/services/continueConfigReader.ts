@@ -2,6 +2,8 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
+import { Logger } from '../utils/logger';
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -26,7 +28,7 @@ export interface ContinueConfig {
 /** Absolute path to the Continue configuration directory. */
 export function getContinueConfigDir(): string {
   const configDir = path.join(os.homedir(), '.continue');
-  console.log(`Looking for Continue config in: ${configDir}`);
+  Logger.log(`Looking for Continue config in: ${configDir}`);
   return configDir;
 }
 
@@ -147,7 +149,7 @@ function parseMinimalYaml(yaml: string): ContinueConfig {
   }
 
   pushCurrent();
-  console.log(`Parsed ${models.length} models from YAML config. Models: ${models.map(m => m.title || m.name).join(', ')}`);
+  Logger.log(`Parsed ${models.length} models from YAML config. Models: ${models.map(m => m.title || m.name).join(', ')}`);
   return { models };
 }
 
