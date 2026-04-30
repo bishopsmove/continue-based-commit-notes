@@ -76,7 +76,62 @@ export async function generateWithFallback(
     }
   }
 
-  // Stub for preferred/default — implemented in Task 5
+  // ── Preferred and default paths: linear fallback walk ─────────────────────
+  const unavailableProviders = new Set<string>();
+  const providerKey = (m: ContinueModel): string => `${m.provider}|${m.apiBase ?? ''}`;
+
+  const initialModel =
+    mode.kind === 'preferred' ? mode.preferredModel : mode.initialModel;
+  const isPreferred = mode.kind === 'preferred';
+  const initialLabel = isPreferred
+    ? `Preferred model "${initialModel.title ?? initialModel.name}" — provider`
+    : 'Provider';
+
+  // Attempt the initial model
+  try {
+    const content = await deps.generate(initialModel);
+    return { content, model: initialModel };
+  } catch (err) {
+    if (err instanceof ProviderUnavailableError) {
+      deps.warn(
+        `${initialLabel} "${err.provider}" is not available at ${err.apiBase}. Trying next available model…`
+      );
+      unavailableProviders.add(providerKey(initialModel));
+    } else if (err instanceof ModelNotFoundError) {
+      const modelLabel = isPreferred
+        ? `Preferred model "${initialModel.title ?? initialModel.name}"`
+        : `Model "${initialModel.title ?? initialModel.name}"`;
+      deps.warn(
+        `${modelLabel} was not found on provider "${err.provider}". Trying next available model…`
+      );
+    } else {
+      throw err;
+    }
+  }
+
+  // Walk remaining models
+  for (const candidate of chatModels) {
+    if (candidate === initialModel) continue;
+    if (unavailableProviders.has(providerKey(candidate))) continue;
+
+    try {
+      const content = await deps.generate(candidate);
+      return { content, model: candidate };
+    } catch (err) {
+      if (err instanceof ProviderUnavailableError) {
+        unavailableProviders.add(providerKey(candidate));
+      } else if (err instanceof ModelNotFoundError) {
+        // continue to next candidate
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  // All models exhausted
+  deps.error(
+    'Continue Commit: No configured models are responding. Check that your providers are running.'
+  );
   return undefined;
 }
 

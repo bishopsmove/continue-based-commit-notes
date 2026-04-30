@@ -109,4 +109,185 @@ suite('generateCommit — generateWithFallback', () => {
       assert.ok(threw);
     });
   });
+
+  suite('preferred mode', () => {
+    test('returns result when preferred model succeeds', async () => {
+      const preferred = makeModel('ollama', 'llama3', 'http://localhost:11434');
+      const models = [preferred, makeModel('openai', 'gpt-4')];
+
+      const result = await mod.generateWithFallback(models, { kind: 'preferred', preferredModel: preferred }, {
+        generate: async () => 'feat: thing',
+        pick: async () => undefined,
+        warn: () => {},
+        error: () => {},
+      });
+
+      assert.ok(result !== undefined);
+      assert.strictEqual(result!.content, 'feat: thing');
+      assert.strictEqual(result!.model, preferred);
+    });
+
+    test('warns and falls back to next model on ProviderUnavailableError', async () => {
+      const preferred = makeModel('ollama', 'llama3', 'http://localhost:11434');
+      const fallback = makeModel('openai', 'gpt-4');
+      const models = [preferred, fallback];
+      const warns: string[] = [];
+      let callCount = 0;
+
+      const result = await mod.generateWithFallback(models, { kind: 'preferred', preferredModel: preferred }, {
+        generate: async (m) => {
+          callCount++;
+          if (m === preferred) throw new ProviderUnavailableError('ollama', 'http://localhost:11434');
+          return 'fix: fallback';
+        },
+        pick: async () => undefined,
+        warn: (msg) => warns.push(msg),
+        error: () => {},
+      });
+
+      assert.ok(result !== undefined);
+      assert.strictEqual(result!.content, 'fix: fallback');
+      assert.strictEqual(result!.model, fallback);
+      assert.strictEqual(warns.length, 1);
+      assert.ok(warns[0].includes('Preferred model'));
+      assert.ok(warns[0].includes('ollama'));
+    });
+
+    test('skips all models sharing an unavailable provider', async () => {
+      const preferred = makeModel('ollama', 'llama3', 'http://localhost:11434');
+      const sameProvider = makeModel('ollama', 'mistral', 'http://localhost:11434');
+      const different = makeModel('openai', 'gpt-4');
+      const models = [preferred, sameProvider, different];
+      const tried: ContinueModel[] = [];
+
+      const result = await mod.generateWithFallback(models, { kind: 'preferred', preferredModel: preferred }, {
+        generate: async (m) => {
+          tried.push(m);
+          if (m.provider === 'ollama') throw new ProviderUnavailableError('ollama', 'http://localhost:11434');
+          return 'fix: ok';
+        },
+        pick: async () => undefined,
+        warn: () => {},
+        error: () => {},
+      });
+
+      assert.ok(result !== undefined);
+      assert.ok(!tried.includes(sameProvider), 'should skip sameProvider model');
+      assert.strictEqual(result!.model, different);
+    });
+
+    test('warns and falls back on ModelNotFoundError (does not skip same provider)', async () => {
+      const preferred = makeModel('ollama', 'llama3', 'http://localhost:11434');
+      const sameProvider = makeModel('ollama', 'mistral', 'http://localhost:11434');
+      const models = [preferred, sameProvider];
+      const warns: string[] = [];
+      const tried: ContinueModel[] = [];
+
+      const result = await mod.generateWithFallback(models, { kind: 'preferred', preferredModel: preferred }, {
+        generate: async (m) => {
+          tried.push(m);
+          if (m === preferred) throw new ModelNotFoundError('llama3', 'ollama');
+          return 'feat: ok';
+        },
+        pick: async () => undefined,
+        warn: (msg) => warns.push(msg),
+        error: () => {},
+      });
+
+      assert.ok(result !== undefined);
+      assert.ok(tried.includes(sameProvider), 'same-provider model should still be tried');
+      assert.ok(warns[0].includes('Preferred model'));
+    });
+
+    test('calls error and returns undefined when all models fail', async () => {
+      const preferred = makeModel('ollama', 'llama3', 'http://localhost:11434');
+      const models = [preferred];
+      const errors: string[] = [];
+
+      const result = await mod.generateWithFallback(models, { kind: 'preferred', preferredModel: preferred }, {
+        generate: async () => { throw new ProviderUnavailableError('ollama', 'http://localhost:11434'); },
+        pick: async () => undefined,
+        warn: () => {},
+        error: (msg) => errors.push(msg),
+      });
+
+      assert.strictEqual(result, undefined);
+      assert.strictEqual(errors.length, 1);
+      assert.ok(errors[0].includes('No configured models'));
+    });
+  });
+
+  suite('default mode', () => {
+    test('returns result when initial model succeeds', async () => {
+      const initial = makeModel('ollama', 'llama3', 'http://localhost:11434');
+      const models = [initial];
+
+      const result = await mod.generateWithFallback(models, { kind: 'default', initialModel: initial }, {
+        generate: async () => 'feat: init',
+        pick: async () => undefined,
+        warn: () => {},
+        error: () => {},
+      });
+
+      assert.ok(result !== undefined);
+      assert.strictEqual(result!.content, 'feat: init');
+    });
+
+    test('warns and falls back on ProviderUnavailableError', async () => {
+      const initial = makeModel('ollama', 'llama3', 'http://localhost:11434');
+      const fallback = makeModel('openai', 'gpt-4');
+      const models = [initial, fallback];
+      const warns: string[] = [];
+
+      const result = await mod.generateWithFallback(models, { kind: 'default', initialModel: initial }, {
+        generate: async (m) => {
+          if (m === initial) throw new ProviderUnavailableError('ollama', 'http://localhost:11434');
+          return 'feat: fallback';
+        },
+        pick: async () => undefined,
+        warn: (msg) => warns.push(msg),
+        error: () => {},
+      });
+
+      assert.ok(result !== undefined);
+      assert.strictEqual(result!.content, 'feat: fallback');
+      assert.ok(warns[0].includes('Provider'));
+      assert.ok(!warns[0].includes('Preferred model'));
+    });
+
+    test('calls error and returns undefined when all models fail', async () => {
+      const initial = makeModel('ollama', 'llama3', 'http://localhost:11434');
+      const models = [initial];
+      const errors: string[] = [];
+
+      const result = await mod.generateWithFallback(models, { kind: 'default', initialModel: initial }, {
+        generate: async () => { throw new ProviderUnavailableError('ollama', 'http://localhost:11434'); },
+        pick: async () => undefined,
+        warn: () => {},
+        error: (msg) => errors.push(msg),
+      });
+
+      assert.strictEqual(result, undefined);
+      assert.ok(errors[0].includes('No configured models'));
+    });
+
+    test('bubbles non-availability errors in default mode', async () => {
+      const initial = makeModel('ollama', 'llama3');
+      const models = [initial];
+      let threw = false;
+
+      try {
+        await mod.generateWithFallback(models, { kind: 'default', initialModel: initial }, {
+          generate: async () => { throw new Error('Unexpected server error'); },
+          pick: async () => undefined,
+          warn: () => {},
+          error: () => {},
+        });
+      } catch (err) {
+        threw = true;
+        assert.strictEqual((err as Error).message, 'Unexpected server error');
+      }
+      assert.ok(threw);
+    });
+  });
 });
