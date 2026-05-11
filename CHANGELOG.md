@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-05-11
+
+### Fixed
+- `continueCommit.preferredModel` setting description now correctly documents that the value can match either a `title` or `name` field in `~/.continue/config.yaml` or `~/.continue/config.json`
+
 ## [0.3.0] — 2026-04-30
 
 ### Added
