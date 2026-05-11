@@ -104,7 +104,7 @@
         "continueCommit.preferredModel": {
           "type": "string",
           "default": "",
-          "markdownDescription": "The **title** of the preferred Continue model (must match a `title` field in `~/.continue/config.json`). Leave empty to auto-select the first available chat model."
+          "markdownDescription": "The **title** / **name** of the preferred Continue model (must match a `title` or `name` field in `~/.continue/config.yaml` or `~/.continue/config.json`). Leave empty to auto-select the first available chat model."
         },
         "continueCommit.commitStyle": {
           "type": "string",
