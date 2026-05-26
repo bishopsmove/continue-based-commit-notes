@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.3.2] — 2026-05-26
+
+### Added
+- Added `galleryBanner` metadata to `package.json` for a custom banner theme
+- Added ability to publish to Open VSX
+  - Updated README with Open VSX installation instructions for VSCodium users
+
 ## [0.3.1] — 2026-05-11
 
 ### Fixed

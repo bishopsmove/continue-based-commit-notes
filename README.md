@@ -22,6 +22,7 @@ No cloud service, no API keys required for local models. Ollama, LM Studio, and 
 | Dependency | Version |
 |---|---|
 | VS Code | ≥ 1.85 |
+| VS Codium | ≥ 1.12 |
 | [Continue.dev extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue) | Any recent release |
 | A configured chat model | Ollama, LM Studio, OpenAI, Anthropic, etc. |
 
@@ -29,9 +30,15 @@ The extension reads your Continue configuration (`~/.continue/config.json` or `c
 
 ---
 
-## Installation
+### Installation
 
-1. Install from the VS Code Marketplace: search **"Continue Commit Notes"**
+**VS Code**: Search "Continue Commit Notes" in the Extensions panel, or install from the
+[VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=jim-ki-do.continue-commit-notes).
+
+**VSCodium**: Search "Continue Commit Notes" in the Extensions panel, or install from
+[Open VSX](https://open-vsx.org/extension/jim-ki-do/continue-commit-notes).
+
+1. Install from respective marketplace: search **"Continue Commit Notes"**
 2. Make sure Continue.dev is installed and you have at least one model configured
 3. Open a git repository — the **C** icon appears automatically in the Source Control panel
 

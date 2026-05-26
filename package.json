@@ -2,7 +2,7 @@
   "name": "continue-commit-notes",
   "displayName": "Continue Commit Notes",
   "description": "Generate AI-powered git commit messages using your locally configured Continue.dev models",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "publisher": "jim-ki-do",
   "license": "MIT",
   "engines": {
@@ -146,21 +146,29 @@
     "pretest": "tsc -p tsconfig.json",
     "test": "node ./out/test/runTests.js",
     "lint": "eslint src --ext ts",
-    "package": "vsce package"
+    "package": "vsce package",
+    "publish:ovsx": "npx ovsx publish ./*.vsix"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.11.5",
     "@types/vscode": "^1.85.0",
     "@vscode/test-electron": "^2.3.8",
-    "@vscode/vsce": "^2.24.0",
+    "@vscode/vsce": "^3.9.1",
     "esbuild": "^0.25.0",
     "mocha": "^10.2.0",
+    "ovsx": "^0.9.5",
     "typescript": "^5.3.3"
   },
-
+  "extensionDependencies": [
+    "vscode.git"
+  ],
   "overrides": {
     "serialize-javascript": ">=7.0.5",
     "uuid": ">=14.0.0"
+  },
+  "galleryBanner": {
+    "color": "#1e1e2e",
+    "theme": "dark"
   }
 }
