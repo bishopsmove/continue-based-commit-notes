@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.3.3] — 2026-05-27
+
+### Added
+- GitHub Actions CI workflow (`.github/workflows/ci.yml`) — runs on every push and pull request to `main`
+  - Type-checks with `tsc --noEmit`
+  - Builds the extension bundle with esbuild
+  - Runs the full test suite via `@vscode/test-electron` (headless, using `xvfb-run`)
+  - Packages the extension and uploads a `.vsix` artifact (7-day retention)
+- CI status badge in README
+
 ## [0.3.2] — 2026-05-26
 
 ### Added
