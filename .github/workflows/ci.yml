@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ci:
+    name: Typecheck, Test & Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Compile tests
+        run: npm run pretest
+
+      - name: Run unit tests
+        run: npx mocha --ui tdd --color --timeout 15000 'out/test/suite/*.test.js' --ignore 'out/test/suite/extension.test.js'
+
+      - name: Package extension
+        run: npx vsce package
+
+      - name: Upload .vsix artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: continue-commit-notes-vsix
+          path: '*.vsix'
+          retention-days: 7
