@@ -4,6 +4,15 @@
 
 ---
 
+<div align="left">
+
+[![VS Code Marketplace](https://vsmarketplacebadges.dev/version-short/jim-ki-do.continue-commit-notes.svg?style=for-the-badge&label=MS%20Marketplace&labelColor=1a1a2e&color=007ACC&logo=visualstudiocode&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=jim-ki-do.continue-commit-notes)[![Open VSX](https://img.shields.io/open-vsx/v/jim-ki-do/continue-commit-notes?style=for-the-badge&label=Open%20VSX&labelColor=1a1a2e&color=a60ee5&logo=eclipseide&logoColor=white)](https://open-vsx.org/extension/jim-ki-do/continue-commit-notes)[![MS Marketplace Installs](https://vsmarketplacebadges.dev/installs-short/jim-ki-do.continue-commit-notes.svg?style=for-the-badge&label=MS%20Marketplace%20Installs&labelColor=1a1a2e&color=22c55e&logo=visualstudiocode&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=jim-ki-do.continue-commit-notes)[![Open VSX Downloads](https://img.shields.io/open-vsx/dt/jim-ki-do/continue-commit-notes?style=for-the-badge&label=Open%20VSX%20Downloads&labelColor=1a1a2e&color=22c55e&logo=eclipseide&logoColor=white)](https://open-vsx.org/extension/jim-ki-do/continue-commit-notes)[![GitHub Stars](https://img.shields.io/github/stars/bishopsmove/continue-based-commit-notes?style=for-the-badge&label=Stars&labelColor=1a1a2e&color=f59e0b&logo=github&logoColor=white)](https://github.com/bishopsmove/continue-based-commit-notes/stargazers)[![License](https://img.shields.io/badge/License-MIT-f43f5e?style=for-the-badge&labelColor=1a1a2e)](LICENSE)[![CI](https://img.shields.io/github/actions/workflow/status/bishopsmove/continue-based-commit-notes/ci.yml?branch=main&style=for-the-badge&label=CI&labelColor=1a1a2e&color=3b82f6&logo=githubactions&logoColor=white)](https://github.com/bishopsmove/continue-based-commit-notes/actions/workflows/ci.yml)
+
+
+</div>
+
+---
+
 ## Overview
 
 **Continue Commit Notes** adds a single-click **C** button to the Source Control panel in VS Code. Click it and the extension:
@@ -22,7 +31,7 @@ No cloud service, no API keys required for local models. Ollama, LM Studio, and 
 | Dependency | Version |
 |---|---|
 | VS Code | ≥ 1.85 |
-| VS Codium | ≥ 1.12 |
+| VS Codium | ≥ 1.120 |
 | [Continue.dev extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue) | Any recent release |
 | A configured chat model | Ollama, LM Studio, OpenAI, Anthropic, etc. |
 
