@@ -28,6 +28,9 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
+      - name: Build extension
+        run: npm run compile
+
       - name: Run tests
         run: xvfb-run -a npm test
 
